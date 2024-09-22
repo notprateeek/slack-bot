@@ -22,11 +22,21 @@ func printCommandEvents(analyticsChannel <-chan *slacker.CommandEvent) {
 	}
 }
 
+func getEnv(key string) string {
+
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
+
+	return os.Getenv(key)
+}
+
 func main() {
 
-	godotenv.Load(".env")
-	slackBotToken := os.Getenv("SLACK_BOT_TOKEN")
-	slackAppToken := os.Getenv("SLACK_APP_TOKEN")
+	slackBotToken := getEnv("SLACK_BOT_TOKEN")
+	slackAppToken := getEnv("SLACK_APP_TOKEN")
 
 	bot := slacker.NewClient(slackBotToken, slackAppToken)
 
@@ -40,9 +50,11 @@ func main() {
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			year := request.Param("year")
 			yob, err := strconv.Atoi(year)
+
 			if err != nil {
-				println("error")
+				log.Fatalf("Error handeling command: %s", err)
 			}
+
 			age := 2024 - yob
 			r := fmt.Sprintf("Your age is %d", age)
 			response.Reply(r)
@@ -51,8 +63,9 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	err := bot.Listen(ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error listening to bot: %s", err)
 	}
 }

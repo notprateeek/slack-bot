@@ -1,4 +1,3 @@
-
 module github.com/notprateeek/slack-bot
 
 go 1.23.1
